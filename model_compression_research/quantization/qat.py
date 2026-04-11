@@ -35,7 +35,10 @@ def _requantize(input, input_scale=1., input_zero_point=0, output_scale=1., outp
             "Requantization is not implemented yet for assymetric input")
     scale = input_scale / output_scale
     n, a = _get_a_n_scale_decomposition(scale, scale_bits)
-    out = ((input * a) >> n).round() + output_zero_point
+    scaled = input * a
+    scaled_int = scaled.to(torch.int32)
+    shifted = (scaled_int >> n)
+    out = shifted.to(torch.float32).round() + output_zero_point
     out = out.clamp(quant_min,
                     quant_max)
     return out
